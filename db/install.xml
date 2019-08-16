@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/traxlaunch/db" VERSION="2018050800" COMMENT="XMLDB file for Moodle mod/traxlaunch"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+    
+        <TABLE NAME="traxlaunch" COMMENT="each record is one Trax Launch activity">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="launchurl" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="launchprotocol" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+            </INDEXES>
+        </TABLE>
+
+        <TABLE NAME="traxlaunch_status" COMMENT="each record is a status for an activity, user and attempt">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="attempt" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="token" TYPE="char" LENGTH="36" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="session_start" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="completion" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="success" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="score_raw" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="score_min" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="score_max" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="first_access" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="last_access" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="completion_time" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="total_time" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+                <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
+                <INDEX NAME="token" UNIQUE="true" FIELDS="token"/>
+            </INDEXES>
+        </TABLE>
+
+    </TABLES>
+</XMLDB>

@@ -1,0 +1,30 @@
+
+#page-mod-traxlaunch-view .status {
+    background-color: #f9f9f9;
+    border: 1px solid #f0f0f0;
+    margin-top: 20px;
+    padding: 20px;
+    text-align: center;
+    color: #000;
+    font-size: 1.2em;
+}
+#page-mod-traxlaunch-view .status p {
+    margin-bottom: 0.2rem;
+}
+#page-mod-traxlaunch-view .status strong {
+    color: #999;
+    font-weight: normal;
+}
+#page-mod-traxlaunch-view .status.incomplete {
+    border: 2px solid #aaa;
+}
+#page-mod-traxlaunch-view .status.completed {
+    border: 2px solid #00B6CC;
+}
+#page-mod-traxlaunch-view .status.passed {
+    border: 2px solid #85C440;
+}
+#page-mod-traxlaunch-view .status.failed {
+    border: 2px solid #D53B3B;
+}
+

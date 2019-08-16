@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteRule "^([a-zA-Z0-9-]+)/statements" "statements.php?token=$1" [PT,QSA]
+RewriteRule "^([a-zA-Z0-9-]+)/activities/state" "states.php?token=$1" [PT,QSA]
+
