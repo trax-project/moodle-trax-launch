@@ -142,13 +142,13 @@ class profile extends base_profile {
      */
     protected function content_activity($xapimodule, $fulldef = true) {
         $res = [
-            'objectType' => 'Activity',
             'id' => $xapimodule['id'] . '/content',
             'definition' => [
                 'type' => $this->activities->types->type('xsco', 'mod_traxlaunch')
             ]
         ];
         if ($fulldef) {
+            $res['objectType'] = 'Activity';
             $res['definition']['extensions'] = [
                 'http://vocab.xapi.fr/extensions/standard' => 'xapi'
             ];
