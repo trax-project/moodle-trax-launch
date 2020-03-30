@@ -80,7 +80,7 @@ function traxlaunch_launch_protocols() {
     return [
         TRAXLAUNCH_PROTOCOL_TINCAN => get_string('tincan', 'traxlaunch'),
         TRAXLAUNCH_PROTOCOL_TINCAN_PROXY => get_string('tincan_proxy', 'traxlaunch'),
-        //TRAXLAUNCH_PROTOCOL_CMI5 => get_string('cmi5', 'traxlaunch'),
+        TRAXLAUNCH_PROTOCOL_CMI5 => get_string('cmi5', 'traxlaunch'),
     ];
 }
 
@@ -182,19 +182,73 @@ function traxlaunch_launch_prepare_tincan_proxy($activity, $cm, $course) {
  * @return string|false
  */
 function traxlaunch_launch_prepare_cmi5($activity, $cm, $course) {
-    global $USER;
+    global $USER, $DB, $CFG;
     $controller = new trax_controller();
 
-    return false;
+    // Prepare activity entries.
+    $courseentry = $controller->activities->get_or_create_db_entry($course->id, 'course');
+    $xapimodule = $controller->activities->get('traxlaunch', $activity->id, false, 'module', 'traxlaunch', 'mod_traxlaunch');
 
-    // Database update.
-    // ...
+    // Prepare params.
+    $endpoint = get_config('logstore_trax', 'lrs_endpoint') . '/';
+    $activityId = $xapimodule['id'] . '/content';
+    $registration = $courseentry->uuid;
+    $actor = json_encode($controller->actors->get('user', $USER->id));
 
     // xAPI State update.
-    // ...
+    $params = [
+        'activityId' => $activityId,
+        'agent' => $actor,
+        'registration' => $registration,
+        'stateId' => 'LMS.LaunchData',
+    ];
+    $data = [
+        'contextTemplate' => [
+            'contextActivities' => [
+                'grouping' => [['id' => $activityId]]
+            ],
+            'extensions' => [
+                'https://w3id.org/xapi/cmi5/context/extensions/sessionid' => utils::uuid()
+            ]
+        ],
+        'launchMode' => 'Normal',
+        'masteryScore' => 0.75,
+        'moveOn' => 'CompletedOrPassed',
+    ];
+    $response = $controller->client()->states()->post($data, $params);
+    if ($response->code != 204) {
+        return false;
+    }
+    
+    // xAPI Agent Profile update.
+    $params = [
+        'agent' => $actor,
+        'profileId' => 'cmi5LearnerPreferences',
+    ];
+    $data = [
+        'languagePreference' => 'en-US',
+        'audioPreference' => 'on',
+    ];
+    $response = $controller->client()->agentProfiles()->post($data, $params);
+    if ($response->code != 204) {
+        return false;
+    }
+    
+    // Fetch link.
+    $fetch = (new moodle_url($CFG->wwwroot . '/mod/traxlaunch/cmi5/token.php', [
+        'activityId' => $activityId,
+        'registration' => $registration,
+        'actor' => $actor,
+    ]))->out(false);
 
     // Launch link.
-    // ...
+    return (new moodle_url($activity->launchurl, [
+        'endpoint' => $endpoint,
+        'fetch' => $fetch,
+        'registration' => $registration,
+        'activityId' => $activityId,
+        'actor' => $actor,
+    ]))->out(false);
 }
 
 /**
