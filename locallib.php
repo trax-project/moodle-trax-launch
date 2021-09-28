@@ -24,16 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use \logstore_trax\src\controller as trax_controller;
-use \logstore_trax\src\utils;
-
-
 /**
  * Supported protocols.
  */
 define('TRAXLAUNCH_PROTOCOL_TINCAN', 0);
 define('TRAXLAUNCH_PROTOCOL_TINCAN_PROXY', 1);
 define('TRAXLAUNCH_PROTOCOL_CMI5', 2);
+define('TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS', 3);
 
 
 /**
@@ -54,9 +51,9 @@ function traxlaunch_tigger_module_event($eventname, $traxlaunch, $course, $cm, $
         'objectid' => $traxlaunch->id,
         'relateduserid' => isset($userid) ? $userid : $USER->id 
     );
-	if (!empty($other)) {
-		$params['other'] = $other;
-	}
+    if (!empty($other)) {
+        $params['other'] = $other;
+    }
     $eventclass = '\mod_traxlaunch\event\\' . $eventname;
     $event = $eventclass::create($params);
     $event->add_record_snapshot('course_modules', $cm);
@@ -81,6 +78,7 @@ function traxlaunch_launch_protocols() {
         TRAXLAUNCH_PROTOCOL_TINCAN => get_string('tincan', 'traxlaunch'),
         TRAXLAUNCH_PROTOCOL_TINCAN_PROXY => get_string('tincan_proxy', 'traxlaunch'),
         TRAXLAUNCH_PROTOCOL_CMI5 => get_string('cmi5', 'traxlaunch'),
+        TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS => get_string('cmi5_traxlrs', 'traxlaunch'),
     ];
 }
 
@@ -93,162 +91,13 @@ function traxlaunch_launch_protocols() {
  * @return string|false
  */
 function traxlaunch_launch_prepare($activity, $cm, $course) {
-    $function = 'traxlaunch_launch_prepare_' . [
+    $class = '\mod_traxlaunch\src\launchers\\' . [
         TRAXLAUNCH_PROTOCOL_TINCAN => 'tincan',
         TRAXLAUNCH_PROTOCOL_TINCAN_PROXY => 'tincan_proxy',
         TRAXLAUNCH_PROTOCOL_CMI5 => 'cmi5',
-    ][$activity->launchprotocol];
-    if (!function_exists($function)) return false;
-    return $function($activity, $cm, $course);
-}
-
-/**
- * Prepare for launching and return the launch URL.
- * Tin Can implementation.
- * 
- * @param stdClass $activity
- * @param stdClass $cm
- * @param stdClass $course
- * @return string|false
- */
-function traxlaunch_launch_prepare_tincan($activity, $cm, $course) {
-    global $USER;
-    $controller = new trax_controller();
-
-    // Launch link.
-    $courseentry = $controller->activities->get_or_create_db_entry($course->id, 'course');
-    $xapimodule = $controller->activities->get('traxlaunch', $activity->id, false, 'module', 'traxlaunch', 'mod_traxlaunch');
-    return (new moodle_url($activity->launchurl, [
-        'endpoint' => get_config('logstore_trax', 'lrs_endpoint') . '/',
-        'auth' => 'Basic ' . base64_encode(get_config('logstore_trax', 'lrs_username') . ':' . get_config('logstore_trax', 'lrs_password')),
-        'actor' => json_encode($controller->actors->get('user', $USER->id)),
-        'registration' => $courseentry->uuid,
-        'activity_id' => $xapimodule['id'] . '/content',
-    ]))->out(false);
-}
-
-/**
- * Prepare for launching and return the launch URL.
- * Tin Can Proxy implementation.
- * 
- * @param stdClass $activity
- * @param stdClass $cm
- * @param stdClass $course
- * @return string|false
- */
-function traxlaunch_launch_prepare_tincan_proxy($activity, $cm, $course) {
-    global $USER, $DB, $CFG;
-    $controller = new trax_controller();
-
-    // Database update.
-    $record = $DB->get_record('traxlaunch_status', ['userid' => $USER->id, 'activityid' => $activity->id, 'attempt' => 1]);
-    if (!$record) {
-        $record = (object)[
-            'userid' => $USER->id,
-            'activityid' => $activity->id,
-            'attempt' => 1,
-            'token' => utils::uuid(),
-            'session_start' => time(),
-            'first_access' => time(),
-            'last_access' => time(),
-        ];
-        $DB->insert_record('traxlaunch_status', $record);
-    } else {
-        $record->token = utils::uuid();
-        $record->session_start = time();
-        $DB->update_record('traxlaunch_status', $record);
-    }
-
-    // Launch link.
-    $endpoint = $CFG->wwwroot . '/mod/traxlaunch/proxy/' . $record->token . '/';
-    $courseentry = $controller->activities->get_or_create_db_entry($course->id, 'course');
-    $xapimodule = $controller->activities->get('traxlaunch', $activity->id, false, 'module', 'traxlaunch', 'mod_traxlaunch');
-    return (new moodle_url($activity->launchurl, [
-        'endpoint' => $endpoint,
-        'auth' => 'Basic ' . base64_encode(':'),
-        'actor' => '{"mbox": "mailto:'.$activity->id.'@traxlaunch.mod"}',
-        'registration' => $courseentry->uuid,
-        'activity_id' => $xapimodule['id'] . '/content',
-    ]))->out(false);
-}
-
-/**
- * Prepare for launching and return the launch URL.
- * CMI5 implementation.
- * 
- * @param stdClass $activity
- * @param stdClass $cm
- * @param stdClass $course
- * @return string|false
- */
-function traxlaunch_launch_prepare_cmi5($activity, $cm, $course) {
-    global $USER, $DB, $CFG;
-    $controller = new trax_controller();
-
-    // Prepare activity entries.
-    $courseentry = $controller->activities->get_or_create_db_entry($course->id, 'course');
-    $xapimodule = $controller->activities->get('traxlaunch', $activity->id, false, 'module', 'traxlaunch', 'mod_traxlaunch');
-
-    // Prepare params.
-    $endpoint = get_config('logstore_trax', 'lrs_endpoint') . '/';
-    $activityId = $xapimodule['id'] . '/content';
-    $registration = $courseentry->uuid;
-    $actor = json_encode($controller->actors->get('user', $USER->id));
-
-    // xAPI State update.
-    $params = [
-        'activityId' => $activityId,
-        'agent' => $actor,
-        'registration' => $registration,
-        'stateId' => 'LMS.LaunchData',
-    ];
-    $data = [
-        'contextTemplate' => [
-            'contextActivities' => [
-                'grouping' => [['id' => $activityId]]
-            ],
-            'extensions' => [
-                'https://w3id.org/xapi/cmi5/context/extensions/sessionid' => utils::uuid()
-            ]
-        ],
-        'launchMode' => 'Normal',
-        'masteryScore' => 0.75,
-        'moveOn' => 'CompletedOrPassed',
-    ];
-    $response = $controller->client()->states()->post($data, $params);
-    if ($response->code != 204) {
-        return false;
-    }
-    
-    // xAPI Agent Profile update.
-    $params = [
-        'agent' => $actor,
-        'profileId' => 'cmi5LearnerPreferences',
-    ];
-    $data = [
-        'languagePreference' => 'en-US',
-        'audioPreference' => 'on',
-    ];
-    $response = $controller->client()->agentProfiles()->post($data, $params);
-    if ($response->code != 204) {
-        return false;
-    }
-    
-    // Fetch link.
-    $fetch = (new moodle_url($CFG->wwwroot . '/mod/traxlaunch/cmi5/token.php', [
-        'activityId' => $activityId,
-        'registration' => $registration,
-        'actor' => $actor,
-    ]))->out(false);
-
-    // Launch link.
-    return (new moodle_url($activity->launchurl, [
-        'endpoint' => $endpoint,
-        'fetch' => $fetch,
-        'registration' => $registration,
-        'activityId' => $activityId,
-        'actor' => $actor,
-    ]))->out(false);
+        TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS => 'cmi5_traxlrs',
+    ][$activity->launchprotocol] . '_launcher';
+    return (new $class)->launch_url($activity, $cm, $course);
 }
 
 /**
@@ -267,6 +116,3 @@ function traxlaunch_check_token($token) {
     }
     return $record->userid;
 }
-
-
-

@@ -24,6 +24,9 @@
 
 require_once('../../../config.php');
 
+// Params.
+$statusId = required_param('id', PARAM_INT);
+
 // Allow CORS requests.
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -41,8 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 }
 
 // JSON response.
-$username = get_config('logstore_trax', 'lrs_username');
-$password = get_config('logstore_trax', 'lrs_password');
-$token = base64_encode($username . ':' . $password);
+global $DB;
+if (!$record = $DB->get_record('traxlaunch_status', ['id' => $statusId])) {
+    http_response_code(403);
+}
 header('Content-Type: application/json');
-echo '{"auth-token": "' . $token . '"}';
+echo '{"auth-token": "' . $record->token . '"}';

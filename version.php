@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2018050800;
+$plugin->version = 2018050801;
 $plugin->requires = 2018050800;
 $plugin->component = 'mod_traxlaunch';
 
-$plugin->release = 'v0.1';
+$plugin->release = 'v0.2';
 $plugin->maturity = MATURITY_ALPHA;
 

@@ -76,7 +76,7 @@ echo '<a href="' . $activityurl . '" class="btn btn-primary btn-lg mt-3">' . get
 
 // Back to course button.
 $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-echo '<a href="' . $courseurl . '" class="btn btn-primary btn-lg btn-link mt-3 ml-2">' . get_string('back_to_course', 'traxlaunch') . '</a>';
+echo '<a href="' . $courseurl . '" class="btn btn-primary btn-lg mt-3 ml-2">' . get_string('back_to_course', 'traxlaunch') . '</a>';
 
 // Content close.
 echo $OUTPUT->footer();
