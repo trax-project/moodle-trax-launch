@@ -68,7 +68,7 @@ class cmi5_traxlrs_launcher extends cmi5_launcher {
                 'json' => [
                     'activity_id' => $this->activityId,
                     'agent' => $this->actor,
-                    'domain' => $domain
+                    'origin' => $domain
                 ],
             ]);
             if (is_null($response) || $response->getStatusCode() != 200) {
