@@ -57,17 +57,17 @@ class cmi5_traxlrs_launcher extends cmi5_launcher {
 
         // Call TRAX LRS token delivery service.
         $tokenServiceEndpoint = substr(get_config('logstore_trax', 'lrs_endpoint'), 0, -3) . 'cmi5/tokens';
-        $password = base64_encode(
+        $auth = 'Basic ' . base64_encode(
             get_config('logstore_trax', 'lrs_username') . ':' . get_config('logstore_trax', 'lrs_password')
         );
         try {
-            $response = (new GuzzleClient)->post($tokenServiceEndpoint, [
+            $response = (new GuzzleClient)->get($tokenServiceEndpoint, [
                 'headers' => [
-                    'Authorization' => 'Basic ' . $password,
+                    'Authorization' => $auth,
                 ],
-                'json' => [
+                'query' => [
                     'activity_id' => $this->activityId,
-                    'agent' => $this->actor,
+                    'agent' => json_encode($this->actor),
                     'origin' => $domain
                 ],
             ]);
@@ -77,6 +77,7 @@ class cmi5_traxlrs_launcher extends cmi5_launcher {
         } catch (GuzzleException $e) {
             return false;
         }
+
         $content = json_decode($response->getBody());
         $this->endpoint = $content->endpoint;
         $this->token = $content->token;

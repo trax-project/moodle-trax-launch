@@ -102,7 +102,7 @@ class cmi5_launcher {
             'fetch' => $this->fetch_link($id),
             'registration' => $this->registration,
             'activityId' => $this->activityId,
-            'actor' => $this->actor,
+            'actor' => json_encode($this->actor),
         ]))->out(false);
     }
 
@@ -125,7 +125,7 @@ class cmi5_launcher {
         $courseentry = $this->traxlogs->activities->get_or_create_db_entry($course->id, 'course');
         $this->registration = $courseentry->uuid;
 
-        $this->actor = json_encode($this->traxlogs->actors->get('user', $USER->id));
+        $this->actor = $this->traxlogs->actors->get('user', $USER->id);
 
         $this->endpoint = get_config('logstore_trax', 'lrs_endpoint') . '/';
         $this->token = base64_encode(
@@ -140,7 +140,7 @@ class cmi5_launcher {
     protected function update_state() {
         $params = [
             'activityId' => $this->activityId,
-            'agent' => $this->actor,
+            'agent' => json_encode($this->actor),
             'registration' => $this->registration,
             'stateId' => 'LMS.LaunchData',
         ];
@@ -166,7 +166,7 @@ class cmi5_launcher {
      */
     protected function update_agent_profile() {
         $params = [
-            'agent' => $this->actor,
+            'agent' => json_encode($this->actor),
             'profileId' => 'cmi5LearnerPreferences',
         ];
         $data = [
