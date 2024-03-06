@@ -25,21 +25,5 @@
 // Protect.
 require_once(__DIR__ . '/protect.php');
 
-// Switch.
-switch ($_SERVER['REQUEST_METHOD']) {
-    case 'GET':
-        require_once($CFG->dirroot . '/admin/tool/log/store/trax/proxy/states_get.php');
-        break;
-    case 'POST':
-        require_once($CFG->dirroot . '/admin/tool/log/store/trax/proxy/states_post.php');
-        break;
-    case 'PUT':
-        require_once($CFG->dirroot . '/admin/tool/log/store/trax/proxy/states_put.php');
-        break;
-    default:
-        http_response_code(403);
-        die;
-}
-
-
-
+// API.
+require_once($CFG->dirroot . '/admin/tool/log/store/trax/proxy/endpoint.php');

@@ -15,19 +15,44 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Trax Launch for Moodle.
+ * Proxy launch profile.
  *
  * @package    mod_traxlaunch
  * @copyright  2019 Sébastien Fraysse {@link http://fraysse.eu}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_traxlaunch\src\launchers;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2018050802;
-$plugin->requires = 2018050800;
-$plugin->component = 'mod_traxlaunch';
+use logstore_trax\src\utils;
 
-$plugin->release = 'v0.3';
-$plugin->maturity = MATURITY_ALPHA;
+/**
+ * CMI5 launcher with proxy control.
+ *
+ * @package    mod_traxlaunch
+ * @copyright  2021 Sébastien Fraysse {@link http://fraysse.eu}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class cmi5_proxy_launcher extends cmi5_launcher {
 
+    /**
+     * Init the launcher properties.
+     * 
+     * @param stdClass $activity
+     * @param stdClass $cm
+     * @param stdClass $course
+     * @return bool
+     */
+    protected function init($activity, $cm, $course) {
+        global $CFG;
+        parent::init($activity, $cm, $course);
+
+        $this->token = utils::uuid();
+        $this->endpoint = $CFG->wwwroot . "/mod/traxlaunch/proxy/endpoint.php?objectid=$activity->id&objecttable=traxlaunch&objecttype=mod&token=$this->token&api=";
+
+        return true;
+    }
+
+}

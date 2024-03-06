@@ -31,6 +31,7 @@ define('TRAXLAUNCH_PROTOCOL_TINCAN', 0);
 define('TRAXLAUNCH_PROTOCOL_TINCAN_PROXY', 1);
 define('TRAXLAUNCH_PROTOCOL_CMI5', 2);
 define('TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS', 3);
+define('TRAXLAUNCH_PROTOCOL_CMI5_PROXY', 4);
 
 
 /**
@@ -79,6 +80,7 @@ function traxlaunch_launch_protocols() {
         TRAXLAUNCH_PROTOCOL_TINCAN_PROXY => get_string('tincan_proxy', 'traxlaunch'),
         TRAXLAUNCH_PROTOCOL_CMI5 => get_string('cmi5', 'traxlaunch'),
         TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS => get_string('cmi5_traxlrs', 'traxlaunch'),
+        TRAXLAUNCH_PROTOCOL_CMI5_PROXY => get_string('cmi5_proxy', 'traxlaunch'),
     ];
 }
 
@@ -96,6 +98,7 @@ function traxlaunch_launch_prepare($activity, $cm, $course) {
         TRAXLAUNCH_PROTOCOL_TINCAN_PROXY => 'tincan_proxy',
         TRAXLAUNCH_PROTOCOL_CMI5 => 'cmi5',
         TRAXLAUNCH_PROTOCOL_CMI5_TRAXLRS => 'cmi5_traxlrs',
+        TRAXLAUNCH_PROTOCOL_CMI5_PROXY => 'cmi5_proxy',
     ][$activity->launchprotocol] . '_launcher';
     return (new $class)->launch_url($activity, $cm, $course);
 }

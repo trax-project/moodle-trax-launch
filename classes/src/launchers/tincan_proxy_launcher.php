@@ -72,13 +72,17 @@ class tincan_proxy_launcher {
         }
 
         // Launch link.
-        $endpoint = $CFG->wwwroot . '/mod/traxlaunch/proxy/' . $record->token . '/';
+
+        // Do not use the .htaccess anymore to let nginx work with this plugin.
+        // $endpoint = $CFG->wwwroot . '/mod/traxlaunch/proxy/' . $record->token . '/';         // The old way.
+        $endpoint = $CFG->wwwroot . "/mod/traxlaunch/proxy/endpoint.php?objectid=$activity->id&objecttable=traxlaunch&objecttype=mod&token=$record->token&api=";
+        
         $courseentry = $controller->activities->get_or_create_db_entry($course->id, 'course');
         $xapimodule = $controller->activities->get('traxlaunch', $activity->id, false, 'module', 'traxlaunch', 'mod_traxlaunch');
         return (new moodle_url($activity->launchurl, [
             'endpoint' => $endpoint,
             'auth' => 'Basic ' . base64_encode(':'),
-            'actor' => '{"mbox": "mailto:'.$activity->id.'@traxlaunch.mod"}',
+            'actor' => '{"mbox": "mailto:'.$activity->id.'@traxlaunch.mod"}',   // We keep it like this because it is a convenient way to anonymize the actor during client-server exchanges.
             'registration' => $courseentry->uuid,
             'activity_id' => $xapimodule['id'] . '/content',
         ]))->out(false);

@@ -26,7 +26,6 @@ namespace mod_traxlaunch\src\launchers;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_traxlaunch\src\launchers\cmi5_launcher;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client as GuzzleClient;
 

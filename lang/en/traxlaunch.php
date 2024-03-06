@@ -48,8 +48,9 @@ $string['launchprotocol_help'] = 'Select a protocol your xAPI content is compati
 // Protocols.
 $string['tincan'] = 'Tin Can (testing only)';
 $string['tincan_proxy'] = 'Tin Can with LRS proxy';
-$string['cmi5'] = 'CMI5 (unsecured)';
+$string['cmi5'] = 'CMI5 (unsecured test)';
 $string['cmi5_traxlrs'] = 'CMI5 (TRAX LRS)';
+$string['cmi5_proxy'] = 'CMI5 with LRS proxy';
 
 // View.
 $string['launch'] = 'Launch Content';

@@ -48,7 +48,7 @@
             <INDEXES>
                 <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
                 <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
-                <INDEX NAME="token" UNIQUE="true" FIELDS="token"/>
+                <INDEX NAME="token" UNIQUE="false" FIELDS="token"/>
             </INDEXES>
         </TABLE>
 
