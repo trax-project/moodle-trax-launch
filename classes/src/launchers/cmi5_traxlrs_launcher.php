@@ -55,21 +55,40 @@ class cmi5_traxlrs_launcher extends cmi5_launcher {
         $domain = $scheme . '://' . explode('/', $rest)[0];
 
         // Call TRAX LRS token delivery service.
-        $tokenServiceEndpoint = substr(get_config('logstore_trax', 'lrs_endpoint'), 0, -3) . 'cmi5/tokens';
         $auth = 'Basic ' . base64_encode(
             get_config('logstore_trax', 'lrs_username') . ':' . get_config('logstore_trax', 'lrs_password')
         );
+
+        // Get the xAPI endpoint and remove the last chunk ('std' with TRAX 2, 'xapi' with TRAX 3).
+        $parts = explode('/', get_config('logstore_trax', 'lrs_endpoint'));
+        $last = array_pop($parts);
+        $tokenServiceEndpoint = implode('/', $parts) . '/cmi5/tokens';
+        $traxVersion = $last == 'std' ? 2 : 3;
+
         try {
-            $response = (new GuzzleClient)->get($tokenServiceEndpoint, [
-                'headers' => [
-                    'Authorization' => $auth,
-                ],
-                'query' => [
-                    'activity_id' => $this->activityId,
-                    'agent' => json_encode($this->actor),
-                    'origin' => $domain
-                ],
-            ]);
+            if ($traxVersion == 2) {
+                $response = (new GuzzleClient)->get($tokenServiceEndpoint, [
+                    'headers' => [
+                        'Authorization' => $auth,
+                    ],
+                    'query' => [
+                        'activity_id' => $this->activityId,
+                        'agent' => json_encode($this->actor),
+                        'origin' => $domain
+                    ],
+                ]);
+            } else {
+                $response = (new GuzzleClient)->post($tokenServiceEndpoint, [
+                    'headers' => [
+                        'Authorization' => $auth,
+                    ],
+                    'query' => [
+                        'activity_id' => $this->activityId,
+                        'agent' => json_encode($this->actor),
+                        'origin' => $domain
+                    ],
+                ]);
+            }
             if (is_null($response) || $response->getStatusCode() != 200) {
                 return false;
             }
@@ -78,6 +97,7 @@ class cmi5_traxlrs_launcher extends cmi5_launcher {
         }
 
         $content = json_decode($response->getBody());
+
         $this->endpoint = $content->endpoint;
         $this->token = $content->token;
         return true;
